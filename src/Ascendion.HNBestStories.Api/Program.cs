@@ -5,6 +5,9 @@ using Ascendion.HNBestStories.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add settings from configuration with validation
+builder.Services.AddApplicationSettings(builder.Configuration);
+
 // Add services to the container.
 builder.Services.AddOpenApi();
 builder.Services.AddMemoryCache();

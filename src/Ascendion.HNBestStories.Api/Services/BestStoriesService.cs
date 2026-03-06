@@ -1,15 +1,16 @@
 using Ascendion.HNBestStories.Api.Abstractions;
 using Ascendion.HNBestStories.Api.Models;
+using Ascendion.HNBestStories.Api.Settings;
 
 namespace Ascendion.HNBestStories.Api.Services;
 
-public class BestStoriesService(IHackerNewsClient hackerNewsClient) : IBestStoriesService
+public class BestStoriesService(IHackerNewsClient hackerNewsClient, HackerNewsSettings settings) : IBestStoriesService
 {
     private readonly IHackerNewsClient _hackerNewsClient = hackerNewsClient
         ?? throw new ArgumentNullException(nameof(hackerNewsClient));
 
-    private const int MaxStoriesAllowed = 200;
-    private const int ParallelStoryFetchLimit = 10;
+    private readonly HackerNewsSettings _settings = settings
+        ?? throw new ArgumentNullException(nameof(settings));
 
     public async Task<ApiResponse> GetBestStoriesAsync(int numberOfStories, CancellationToken cancellationToken = default)
     {
@@ -19,9 +20,9 @@ public class BestStoriesService(IHackerNewsClient hackerNewsClient) : IBestStori
             return new ApiResponse.Error("Number of stories must be greater than 0.");
         }
 
-        if (numberOfStories > MaxStoriesAllowed)
+        if (numberOfStories > _settings.MaxStoriesAllowed)
         {
-            return new ApiResponse.Error($"Number of stories must not exceed {MaxStoriesAllowed}.");
+            return new ApiResponse.Error($"Number of stories must not exceed {_settings.MaxStoriesAllowed}.");
         }
 
         try
@@ -40,7 +41,7 @@ public class BestStoriesService(IHackerNewsClient hackerNewsClient) : IBestStori
             while (bestStories.Count < numberOfStories && startStoryIndex < bestStoryIds.Length)
             {
                 // Calculate how many stories to fetch in this batch, ensuring we don't exceed the requested number
-                var numberOfStoriesToFetch = Math.Min(ParallelStoryFetchLimit, numberOfStories - bestStories.Count);
+                var numberOfStoriesToFetch = Math.Min(_settings.MaxParallelRequests, numberOfStories - bestStories.Count);
 
                 // Take only the requested number of IDs
                 var storyIdsToFetch = bestStoryIds[startStoryIndex..(startStoryIndex + numberOfStoriesToFetch)];
@@ -79,7 +80,6 @@ public class BestStoriesService(IHackerNewsClient hackerNewsClient) : IBestStori
     private static DateTime UnixTimeStampToDateTime(long unixTimeStamp)
     {
         var dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-        dateTime = dateTime.AddSeconds(unixTimeStamp).ToUniversalTime();
-        return dateTime;
+        return dateTime.AddSeconds(unixTimeStamp).ToUniversalTime();
     }
 }

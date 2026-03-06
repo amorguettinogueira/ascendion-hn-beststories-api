@@ -1,0 +1,36 @@
+# Environment files (local configuration, may contain secrets)
+.env
+.env.local
+.env.*.local
+
+# Build results
+bin/
+obj/
+*.dll
+*.exe
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+
+# IDE
+.vs/
+.vscode/
+*.suo
+*.sln.iml
+*.user
+*.userprefs
+
+# OS
+.DS_Store
+Thumbs.db
+
+# NuGet
+.nuget/
+*.nupkg
+*.snupkg
+
+# Local tools
+.dotnet/

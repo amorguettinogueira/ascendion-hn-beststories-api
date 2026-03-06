@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hn-beststories-api
+    ports:
+      - "5000:8080"
+      - "5001:8081"
+    env_file:
+      - .env
+    environment:
+      # These can override .env values if needed
+      - ASPNETCORE_ENVIRONMENT=Development
+    # For production, you might add:
+    # restart: unless-stopped
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3

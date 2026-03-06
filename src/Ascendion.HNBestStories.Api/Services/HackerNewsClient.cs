@@ -1,10 +1,11 @@
 using Microsoft.Extensions.Caching.Memory;
 using Ascendion.HNBestStories.Api.Abstractions;
 using Ascendion.HNBestStories.Api.Models;
+using Ascendion.HNBestStories.Api.Settings;
 
 namespace Ascendion.HNBestStories.Api.Services;
 
-public class HackerNewsClient(HttpClient httpClient, IMemoryCache cache) : IHackerNewsClient
+public class HackerNewsClient(HttpClient httpClient, IMemoryCache cache, HackerNewsSettings settings) : IHackerNewsClient
 {
     private readonly HttpClient _httpClient = httpClient
         ?? throw new ArgumentNullException(nameof(httpClient));
@@ -12,10 +13,11 @@ public class HackerNewsClient(HttpClient httpClient, IMemoryCache cache) : IHack
     private readonly IMemoryCache _cache = cache
         ?? throw new ArgumentNullException(nameof(cache));
 
+    private readonly HackerNewsSettings _settings = settings
+        ?? throw new ArgumentNullException(nameof(settings));
+
     private const string BestStoriesIdsCacheKey = "hacker_news_best_stories_ids";
     private const string StoryCacheKeyPrefix = "hacker_news_story_";
-    private static readonly TimeSpan BestStoriesIdsCacheDuration = TimeSpan.FromMinutes(1);
-    private static readonly TimeSpan StoryCacheDuration = TimeSpan.FromHours(1);
 
     public async Task<int[]> GetBestStoryIdsAsync(CancellationToken cancellationToken = default)
     {
@@ -33,7 +35,7 @@ public class HackerNewsClient(HttpClient httpClient, IMemoryCache cache) : IHack
 
         var ids = await response.Content.ReadFromJsonAsync<int[]>(cancellationToken);
 
-        _ = _cache.Set(BestStoriesIdsCacheKey, ids, BestStoriesIdsCacheDuration);
+        _ = _cache.Set(BestStoriesIdsCacheKey, ids, TimeSpan.FromMinutes(_settings.BestStoriesIdsCacheDurationMinutes));
 
         return ids ?? [];
     }
@@ -56,7 +58,7 @@ public class HackerNewsClient(HttpClient httpClient, IMemoryCache cache) : IHack
 
         var story = await response.Content.ReadFromJsonAsync<HackerNewsStory>(cancellationToken);
 
-        _ = _cache.Set(cacheKey, story, StoryCacheDuration);
+        _ = _cache.Set(cacheKey, story, TimeSpan.FromHours(_settings.StoryCacheDurationHours));
 
         return story;
     }
