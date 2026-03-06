@@ -10,7 +10,6 @@ builder.Services.AddOpenApi();
 builder.Services.AddMemoryCache();
 
 // Register services
-builder.Services.AddScoped<IWeatherForecastService, WeatherForecastService>();
 builder.Services.AddScoped<IBestStoriesService, BestStoriesService>();
 builder.Services.AddHackerNewsClient();
 
@@ -20,7 +19,6 @@ _ = app.MapOpenApi();
 app.UseHttpsRedirection();
 
 // Map endpoints
-app.MapWeatherForecastEndpoints();
 app.MapBestStoriesEndpoints();
 
 app.Run();
