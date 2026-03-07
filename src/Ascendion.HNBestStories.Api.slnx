@@ -1,3 +1,6 @@
 <Solution>
   <Project Path="Ascendion.HNBestStories.Api/Ascendion.HNBestStories.Api.csproj" />
+  <Project Path="docker-compose.dcproj">
+    <Build />
+  </Project>
 </Solution>

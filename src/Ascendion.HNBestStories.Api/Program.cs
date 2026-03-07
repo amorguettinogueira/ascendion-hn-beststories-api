@@ -5,6 +5,9 @@ using Ascendion.HNBestStories.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add environment variables to configuration (required for .env file support in Docker)
+builder.Configuration.AddEnvironmentVariables();
+
 // Add settings from configuration with validation
 builder.Services.AddApplicationSettings(builder.Configuration);
 

@@ -1,0 +1,6 @@
+services:
+  ascendion.hnbeststories.api:
+    image: ${DOCKER_REGISTRY-}ascendionhnbeststoriesapi
+    build:
+      context: Ascendion.HNBestStories.Api
+      dockerfile: Dockerfile

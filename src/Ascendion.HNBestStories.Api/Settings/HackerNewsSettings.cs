@@ -45,4 +45,39 @@ public class HackerNewsSettings
     /// </summary>
     [Range(1, 30, ErrorMessage = "Request timeout must be between 1 and 30 seconds")]
     public int RequestTimeoutSeconds { get; set; } = 2;
+
+    /// <summary>
+    /// Maximum number of retry attempts for transient failures.
+    /// Environment variable: HACKERNEWS_MAX_RETRY_ATTEMPTS
+    /// </summary>
+    [Range(0, 10, ErrorMessage = "Max retry attempts must be between 0 and 10")]
+    public int MaxRetryAttempts { get; set; } = 3;
+
+    /// <summary>
+    /// Initial retry delay in milliseconds.
+    /// Environment variable: HACKERNEWS_RETRY_DELAY_MILLISECONDS
+    /// </summary>
+    [Range(1, 5000, ErrorMessage = "Retry delay must be between 1 and 5000 milliseconds")]
+    public int RetryDelayMilliseconds { get; set; } = 200;
+
+    /// <summary>
+    /// Circuit breaker failure ratio (0.0 to 1.0).
+    /// Environment variable: HACKERNEWS_CIRCUIT_BREAKER_FAILURE_RATIO
+    /// </summary>
+    [Range(0.0, 1.0, ErrorMessage = "Circuit breaker failure ratio must be between 0.0 and 1.0")]
+    public double CircuitBreakerFailureRatio { get; set; } = 0.5;
+
+    /// <summary>
+    /// Circuit breaker sampling duration in seconds.
+    /// Environment variable: HACKERNEWS_CIRCUIT_BREAKER_SAMPLING_DURATION_SECONDS
+    /// </summary>
+    [Range(1, 300, ErrorMessage = "Circuit breaker sampling duration must be between 1 and 300 seconds")]
+    public int CircuitBreakerSamplingDurationSeconds { get; set; } = 30;
+
+    /// <summary>
+    /// Minimum throughput for circuit breaker (minimum number of requests to evaluate the failure ratio).
+    /// Environment variable: HACKERNEWS_CIRCUIT_BREAKER_MINIMUM_THROUGHPUT
+    /// </summary>
+    [Range(1, 100, ErrorMessage = "Circuit breaker minimum throughput must be between 1 and 100")]
+    public int CircuitBreakerMinimumThroughput { get; set; } = 5;
 }
