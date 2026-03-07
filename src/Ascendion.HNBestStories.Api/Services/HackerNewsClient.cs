@@ -1,11 +1,17 @@
 using Microsoft.Extensions.Caching.Memory;
 using Ascendion.HNBestStories.Api.Abstractions;
+using Ascendion.HNBestStories.Api.Exceptions;
 using Ascendion.HNBestStories.Api.Models;
 using Ascendion.HNBestStories.Api.Settings;
+using System.Text.Json;
 
 namespace Ascendion.HNBestStories.Api.Services;
 
-public class HackerNewsClient(HttpClient httpClient, IMemoryCache cache, HackerNewsSettings settings) : IHackerNewsClient
+/// <inheritdoc />
+public sealed class HackerNewsClient(
+    HttpClient httpClient,
+    IMemoryCache cache,
+    HackerNewsSettings settings) : IHackerNewsClient
 {
     private readonly HttpClient _httpClient = httpClient
         ?? throw new ArgumentNullException(nameof(httpClient));
@@ -19,6 +25,7 @@ public class HackerNewsClient(HttpClient httpClient, IMemoryCache cache, HackerN
     private const string BestStoriesIdsCacheKey = "hacker_news_best_stories_ids";
     private const string StoryCacheKeyPrefix = "hacker_news_story_";
 
+    /// <inheritdoc />
     public async Task<int[]> GetBestStoryIdsAsync(CancellationToken cancellationToken = default)
     {
         if (_cache.TryGetValue(BestStoriesIdsCacheKey, out int[]? cachedIds) && cachedIds?.Length > 0)
@@ -26,20 +33,41 @@ public class HackerNewsClient(HttpClient httpClient, IMemoryCache cache, HackerN
             return cachedIds;
         }
 
-        var response = await _httpClient.GetAsync("beststories.json", cancellationToken);
-
-        if (!response.IsSuccessStatusCode)
+        try
         {
-            return [];
+            var response = await _httpClient.GetAsync("beststories.json", cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new HackerNewsApiException(
+                    $"Failed to retrieve best story IDs. Status code: {response.StatusCode}");
+            }
+
+            var ids = await response.Content.ReadFromJsonAsync<int[]>(cancellationToken: cancellationToken);
+
+            if (ids is null || ids.Length == 0)
+            {
+                throw new HackerNewsApiException("Best stories list is empty or invalid.");
+            }
+
+            _cache.Set(
+                BestStoriesIdsCacheKey,
+                ids,
+                TimeSpan.FromMinutes(_settings.BestStoriesIdsCacheDurationMinutes));
+
+            return ids;
         }
-
-        var ids = await response.Content.ReadFromJsonAsync<int[]>(cancellationToken);
-
-        _ = _cache.Set(BestStoriesIdsCacheKey, ids, TimeSpan.FromMinutes(_settings.BestStoriesIdsCacheDurationMinutes));
-
-        return ids ?? [];
+        catch (HttpRequestException ex)
+        {
+            throw new HackerNewsApiException("Network error while retrieving best story IDs.", ex);
+        }
+        catch (JsonException ex)
+        {
+            throw new HackerNewsApiException("Invalid JSON response when retrieving best story IDs.", ex);
+        }
     }
 
+    /// <inheritdoc />
     public async Task<HackerNewsStory?> GetStoryAsync(int storyId, CancellationToken cancellationToken = default)
     {
         var cacheKey = $"{StoryCacheKeyPrefix}{storyId}";
@@ -49,17 +77,37 @@ public class HackerNewsClient(HttpClient httpClient, IMemoryCache cache, HackerN
             return cachedStory;
         }
 
-        var response = await _httpClient.GetAsync($"item/{storyId}.json", cancellationToken);
-
-        if (!response.IsSuccessStatusCode)
+        try
         {
+            var response = await _httpClient.GetAsync($"item/{storyId}.json", cancellationToken);
+
+            // Return null for not found or other non-success responses
+            if (!response.IsSuccessStatusCode)
+            {
+                return null;
+            }
+
+            var story = await response.Content.ReadFromJsonAsync<HackerNewsStory>(cancellationToken: cancellationToken);
+
+            if (story != null)
+            {
+                _cache.Set(
+                    cacheKey,
+                    story,
+                    TimeSpan.FromHours(_settings.StoryCacheDurationHours));
+            }
+
+            return story;
+        }
+        catch (HttpRequestException)
+        {
+            // Network errors result in null to allow graceful degradation
             return null;
         }
-
-        var story = await response.Content.ReadFromJsonAsync<HackerNewsStory>(cancellationToken);
-
-        _ = _cache.Set(cacheKey, story, TimeSpan.FromHours(_settings.StoryCacheDurationHours));
-
-        return story;
+        catch (JsonException)
+        {
+            // JSON parsing errors result in null
+            return null;
+        }
     }
 }

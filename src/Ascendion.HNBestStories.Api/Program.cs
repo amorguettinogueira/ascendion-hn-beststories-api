@@ -5,26 +5,36 @@ using Ascendion.HNBestStories.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add environment variables to configuration (required for .env file support in Docker)
+// Add environment variables to configuration
+// This enables .env file support in Docker containers and local development
 builder.Configuration.AddEnvironmentVariables();
 
-// Add settings from configuration with validation
+// Configure application settings with validation
 builder.Services.AddApplicationSettings(builder.Configuration);
 
-// Add services to the container.
+// Add core services to the container
 builder.Services.AddOpenApi();
 builder.Services.AddMemoryCache();
 
-// Register services
+// Register business logic services
 builder.Services.AddScoped<IBestStoriesService, BestStoriesService>();
+builder.Services.AddScoped<IStoriesRequestValidator, StoriesRequestValidator>();
+
+// Register HTTP client with resilience policies
 builder.Services.AddHackerNewsClient();
 
-// Add other services and configurations as needed
+// Build the application
 var app = builder.Build();
-_ = app.MapOpenApi();
+
+// Configure the HTTP request pipeline
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+}
+
 app.UseHttpsRedirection();
 
-// Map endpoints
+// Map API endpoints
 app.MapBestStoriesEndpoints();
 
 app.Run();
