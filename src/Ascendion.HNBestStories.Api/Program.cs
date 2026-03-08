@@ -15,6 +15,7 @@ builder.Services.AddApplicationSettings(builder.Configuration);
 // Add core services to the container
 builder.Services.AddOpenApi();
 builder.Services.AddMemoryCache();
+builder.Services.AddLogging();
 
 // Register business logic services
 builder.Services.AddScoped<IBestStoriesService, BestStoriesService>();

@@ -12,7 +12,7 @@ public sealed class BestStoriesService(
     IHackerNewsClient hackerNewsClient,
     HackerNewsSettings settings,
     IStoriesRequestValidator validator,
-    ILogger logger) : IBestStoriesService
+    ILogger<BestStoriesService> logger) : IBestStoriesService
 {
     private readonly IHackerNewsClient _hackerNewsClient = hackerNewsClient
         ?? throw new ArgumentNullException(nameof(hackerNewsClient));
@@ -23,7 +23,7 @@ public sealed class BestStoriesService(
     private readonly IStoriesRequestValidator _validator = validator
         ?? throw new ArgumentNullException(nameof(validator));
 
-    private readonly ILogger _logger = logger
+    private readonly ILogger<BestStoriesService> _logger = logger
         ?? throw new ArgumentNullException(nameof(logger));
 
     /// <inheritdoc />

@@ -17,7 +17,7 @@ public class BestStoriesServiceTests
 {
     private readonly Mock<IHackerNewsClient> _mockHackerNewsClient;
     private readonly Mock<IStoriesRequestValidator> _mockValidator;
-    private readonly Mock<ILogger> _mockLogger;
+    private readonly Mock<ILogger<BestStoriesService>> _mockLogger;
     private readonly HackerNewsSettings _settings;
     private readonly BestStoriesService _service;
 
@@ -25,7 +25,7 @@ public class BestStoriesServiceTests
     {
         _mockHackerNewsClient = new Mock<IHackerNewsClient>();
         _mockValidator = new Mock<IStoriesRequestValidator>();
-        _mockLogger = new Mock<ILogger>();
+        _mockLogger = new Mock<ILogger<BestStoriesService>>();
         _settings = new HackerNewsSettings
         {
             MaxStoriesAllowed = 30,
