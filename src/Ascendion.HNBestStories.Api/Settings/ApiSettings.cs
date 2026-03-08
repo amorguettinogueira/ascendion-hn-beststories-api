@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace Ascendion.HNBestStories.Api.Settings;
 
 /// <summary>

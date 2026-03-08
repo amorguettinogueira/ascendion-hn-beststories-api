@@ -3,6 +3,7 @@ using Ascendion.HNBestStories.Api.Exceptions;
 using Ascendion.HNBestStories.Api.Models;
 using Ascendion.HNBestStories.Api.Settings;
 using Ascendion.HNBestStories.Api.Utilities;
+using System.ComponentModel.DataAnnotations;
 
 namespace Ascendion.HNBestStories.Api.Services;
 
@@ -10,7 +11,8 @@ namespace Ascendion.HNBestStories.Api.Services;
 public sealed class BestStoriesService(
     IHackerNewsClient hackerNewsClient,
     HackerNewsSettings settings,
-    IStoriesRequestValidator validator) : IBestStoriesService
+    IStoriesRequestValidator validator,
+    ILogger logger) : IBestStoriesService
 {
     private readonly IHackerNewsClient _hackerNewsClient = hackerNewsClient
         ?? throw new ArgumentNullException(nameof(hackerNewsClient));
@@ -20,6 +22,9 @@ public sealed class BestStoriesService(
 
     private readonly IStoriesRequestValidator _validator = validator
         ?? throw new ArgumentNullException(nameof(validator));
+
+    private readonly ILogger _logger = logger
+        ?? throw new ArgumentNullException(nameof(logger));
 
     /// <inheritdoc />
     public async Task<ApiResponse> GetBestStoriesAsync(int numberOfStories, CancellationToken cancellationToken = default)
@@ -64,8 +69,31 @@ public sealed class BestStoriesService(
     }
 
     /// <summary>
-    /// Fetches stories in parallel batches and converts them to BestStory DTOs.
+    /// Fetches a single story with fallback to null on any exception.
+    /// Ensures individual story failures don't break the entire batch operation.
     /// </summary>
+    /// <param name="storyId">The ID of the story to fetch.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The story if successful, null if fetch fails.</returns>
+    private async Task<HackerNewsStory?> FetchStoryWithFallbackAsync(int storyId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await _hackerNewsClient.GetStoryAsync(storyId, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogWarning("Story fetch cancelled for ID {StoryId}", storyId);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to fetch story with ID {StoryId}", storyId);
+            return null;
+        }
+    }
+
+    /// <summary>
     /// <param name="bestStoryIds">The array of story IDs to fetch.</param>
     /// <param name="numberOfStories">The total number of stories to retrieve.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
@@ -90,8 +118,9 @@ public sealed class BestStoriesService(
             var storyIdsToFetch = bestStoryIds[startStoryIndex..(startStoryIndex + batchSize)];
             startStoryIndex += batchSize;
 
-            // Fetch all stories in parallel
-            var storyTasks = storyIdsToFetch.Select(id => _hackerNewsClient.GetStoryAsync(id, cancellationToken));
+            // Fetch all stories in parallel with individual error handling
+            var storyTasks = storyIdsToFetch.Select(id => FetchStoryWithFallbackAsync(id, cancellationToken));
+
             var stories = await Task.WhenAll(storyTasks);
 
             // Convert and add valid stories to results
@@ -99,7 +128,7 @@ public sealed class BestStoriesService(
                 stories
                     .OfType<HackerNewsStory>()
                     .Select(ConvertToApiStory)
-                    .Where(story => story.IsValid())
+                    .Where(story => story?.IsValid() ?? false)
             ]);
         }
 

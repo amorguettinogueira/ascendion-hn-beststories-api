@@ -28,6 +28,21 @@ public sealed record BestStory(
     public string PostedBy { get; } = string.IsNullOrWhiteSpace(PostedBy) ? "No author available" : PostedBy;
 
     /// <summary>
+    /// The time the story was posted. Should be in UTC. No default value as it's required for a valid story.
+    /// </summary>
+    public DateTime Time { get; } = Time;
+
+    /// <summary>
+    /// The score of the story. Must be non-negative. Default is 0 if an invalid score is provided.
+    /// </summary>
+    public int Score { get; } = Score;
+
+    /// <summary>
+    /// The number of comments on the story. Must be non-negative. Default is 0 if an invalid count is provided.
+    /// </summary>
+    public int CommentCount { get; } = CommentCount;
+
+    /// <summary>
     /// Validates the story data.
     /// </summary>
     /// <returns>True if the story contains minimal valid data; otherwise false.</returns>

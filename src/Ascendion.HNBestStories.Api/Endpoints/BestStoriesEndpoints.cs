@@ -12,8 +12,7 @@ public static class BestStoriesEndpoints
     /// Maps the best stories endpoints to the application.
     /// </summary>
     /// <param name="app">The web application builder.</param>
-    public static void MapBestStoriesEndpoints(this WebApplication app)
-    {
+    public static void MapBestStoriesEndpoints(this WebApplication app) =>
         app.MapGet("/beststories/{numberOfStories}", HandleGetBestStories)
             .WithName("GetBestStories")
             .AddOpenApiOperationTransformer((operation, context, ct) =>
@@ -28,7 +27,6 @@ public static class BestStoriesEndpoints
                 contentType: "application/json")
             .Produces(StatusCodes.Status500InternalServerError,
                 contentType: "application/json");
-    }
 
     /// <summary>
     /// Handles GET requests for the best stories endpoint.

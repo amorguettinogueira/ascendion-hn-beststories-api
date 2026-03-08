@@ -1,6 +1,5 @@
 using Ascendion.HNBestStories.Api.Abstractions;
 using Ascendion.HNBestStories.Api.Services;
-using Ascendion.HNBestStories.Api.Settings;
 using Microsoft.Extensions.Http.Resilience;
 using Polly;
 
