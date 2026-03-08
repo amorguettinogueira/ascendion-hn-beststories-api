@@ -4,6 +4,7 @@ using Ascendion.HNBestStories.Api.Services;
 using Ascendion.HNBestStories.Api.Settings;
 using FluentAssertions;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.Protected;
 using Xunit;
@@ -20,6 +21,7 @@ public class HackerNewsClientTests
     private readonly HttpClient _httpClient;
     private readonly IMemoryCache _cache;
     private readonly HackerNewsSettings _settings;
+    private readonly Mock<ILogger<HackerNewsClient>> _mockLogger;
     private readonly IHackerNewsClient _client;
 
     public HackerNewsClientTests()
@@ -35,14 +37,15 @@ public class HackerNewsClientTests
             BestStoriesIdsCacheDurationMinutes = 5,
             StoryCacheDurationHours = 1
         };
-        _client = new HackerNewsClient(_httpClient, _cache, _settings);
+        _mockLogger = new Mock<ILogger<HackerNewsClient>>();
+        _client = new HackerNewsClient(_httpClient, _cache, _settings, _mockLogger.Object);
     }
 
     [Fact]
     public void Constructor_WithNullHttpClient_ThrowsArgumentNullException()
     {
         // Act & Assert
-        var act = () => new HackerNewsClient(null!, _cache, _settings);
+        var act = () => new HackerNewsClient(null!, _cache, _settings, _mockLogger.Object);
         act.Should().Throw<ArgumentNullException>();
     }
 
@@ -50,7 +53,7 @@ public class HackerNewsClientTests
     public void Constructor_WithNullCache_ThrowsArgumentNullException()
     {
         // Act & Assert
-        var act = () => new HackerNewsClient(_httpClient, null!, _settings);
+        var act = () => new HackerNewsClient(_httpClient, null!, _settings, _mockLogger.Object);
         act.Should().Throw<ArgumentNullException>();
     }
 
@@ -58,7 +61,15 @@ public class HackerNewsClientTests
     public void Constructor_WithNullSettings_ThrowsArgumentNullException()
     {
         // Act & Assert
-        var act = () => new HackerNewsClient(_httpClient, _cache, null!);
+        var act = () => new HackerNewsClient(_httpClient, _cache, null!, _mockLogger.Object);
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public void Constructor_WithNullLogger_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        var act = () => new HackerNewsClient(_httpClient, _cache, _settings, null!);
         act.Should().Throw<ArgumentNullException>();
     }
 

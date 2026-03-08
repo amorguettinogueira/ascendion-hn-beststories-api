@@ -1,4 +1,11 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="../ARCHITECTURE_DETAILS.md" />
+    <File Path="../BEST_PRACTICES.md" />
+    <File Path="../CONFIGURATION.md" />
+    <File Path="../README.md" />
+    <File Path=".env.example" />
+  </Folder>
   <Project Path="../tests/Ascendion.HNBestStories.Api.Tests/Ascendion.HNBestStories.Api.Tests.csproj" />
   <Project Path="Ascendion.HNBestStories.Api/Ascendion.HNBestStories.Api.csproj" />
   <Project Path="docker-compose.dcproj">

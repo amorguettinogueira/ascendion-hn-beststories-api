@@ -10,6 +10,7 @@
       <DependentUpon>docker-compose.yml</DependentUpon>
     </None>
     <None Include="docker-compose.yml" />
+    <None Include="README.md" />
     <None Include="TEST_COVERAGE_SUMMARY.md" />
   </ItemGroup>
 </Project>

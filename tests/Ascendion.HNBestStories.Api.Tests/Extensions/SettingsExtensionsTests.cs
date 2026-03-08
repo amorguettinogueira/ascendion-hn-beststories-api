@@ -20,12 +20,16 @@ public class SettingsExtensionsTests
         var config = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                { "HackerNews:MaxStoriesAllowed", "30" },
-                { "HackerNews:MaxParallelRequests", "10" },
                 { "HackerNews:BestStoriesIdsCacheDurationMinutes", "5" },
                 { "HackerNews:StoryCacheDurationHours", "1" },
-                { "Api:ApiVersions:CurrentVersion", "1.0" },
-                { "Api:ApiVersions:DeprecatedVersions", "" }
+                { "HackerNews:MaxStoriesAllowed", "30" },
+                { "HackerNews:MaxParallelRequests", "10" },
+                { "HackerNews:RequestTimeoutSeconds", "2" },
+                { "HackerNews:MaxRetryAttempts", "3" },
+                { "HackerNews:RetryDelayMilliseconds", "200" },
+                { "HackerNews:CircuitBreakerFailureRatio", "0.5" },
+                { "HackerNews:CircuitBreakerSamplingDurationSeconds", "30" },
+                { "HackerNews:CircuitBreakerMinimumThroughput", "5" },
             })
             .Build();
 
@@ -40,8 +44,16 @@ public class SettingsExtensionsTests
         var provider = services.BuildServiceProvider();
         var hackerNewsSettings = provider.GetRequiredService<HackerNewsSettings>();
         hackerNewsSettings.Should().NotBeNull();
+        hackerNewsSettings.BestStoriesIdsCacheDurationMinutes.Should().Be(5);
+        hackerNewsSettings.StoryCacheDurationHours.Should().Be(1);
         hackerNewsSettings.MaxStoriesAllowed.Should().Be(30);
         hackerNewsSettings.MaxParallelRequests.Should().Be(10);
+        hackerNewsSettings.RequestTimeoutSeconds.Should().Be(2);
+        hackerNewsSettings.MaxRetryAttempts.Should().Be(3);
+        hackerNewsSettings.RetryDelayMilliseconds.Should().Be(200);
+        hackerNewsSettings.CircuitBreakerFailureRatio.Should().Be(0.5);
+        hackerNewsSettings.CircuitBreakerSamplingDurationSeconds.Should().Be(30);
+        hackerNewsSettings.CircuitBreakerMinimumThroughput.Should().Be(5);
     }
 
     [Fact]
@@ -51,12 +63,16 @@ public class SettingsExtensionsTests
         var config = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                { "HackerNews:MaxStoriesAllowed", "-5" },  // Invalid: negative value
-                { "HackerNews:MaxParallelRequests", "10" },
                 { "HackerNews:BestStoriesIdsCacheDurationMinutes", "5" },
                 { "HackerNews:StoryCacheDurationHours", "1" },
-                { "Api:ApiVersions:CurrentVersion", "1.0" },
-                { "Api:ApiVersions:DeprecatedVersions", "" }
+                { "HackerNews:MaxStoriesAllowed", "-5" },  // Invalid: negative value
+                { "HackerNews:MaxParallelRequests", "10" },
+                { "HackerNews:RequestTimeoutSeconds", "2" },
+                { "HackerNews:MaxRetryAttempts", "3" },
+                { "HackerNews:RetryDelayMilliseconds", "200" },
+                { "HackerNews:CircuitBreakerFailureRatio", "0.5" },
+                { "HackerNews:CircuitBreakerSamplingDurationSeconds", "30" },
+                { "HackerNews:CircuitBreakerMinimumThroughput", "5" },
             })
             .Build();
 
@@ -69,45 +85,22 @@ public class SettingsExtensionsTests
     }
 
     [Fact]
-    public void AddApplicationSettings_WithInvalidApiSettings_ThrowsInvalidOperationException()
-    {
-        // Arrange
-        var config = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                { "HackerNews:MaxStoriesAllowed", "30" },
-                { "HackerNews:MaxParallelRequests", "10" },
-                { "HackerNews:BestStoriesIdsCacheDurationMinutes", "5" },
-                { "HackerNews:StoryCacheDurationHours", "1" },
-                { "Api:ApiVersions:CurrentVersion", "1.0" },
-                { "Api:ApiVersions:DeprecatedVersions", "" }
-            })
-            .Build();
-
-        var services = new ServiceCollection();
-
-        // Act
-        services.AddApplicationSettings(config);
-        var provider = services.BuildServiceProvider();
-
-        // Assert
-        var apiSettings = provider.GetRequiredService<ApiSettings>();
-        apiSettings.Should().NotBeNull();
-    }
-
-    [Fact]
     public void AddApplicationSettings_ReturnsServiceCollection_ForChaining()
     {
         // Arrange
         var config = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                { "HackerNews:MaxStoriesAllowed", "30" },
-                { "HackerNews:MaxParallelRequests", "10" },
                 { "HackerNews:BestStoriesIdsCacheDurationMinutes", "5" },
                 { "HackerNews:StoryCacheDurationHours", "1" },
-                { "Api:ApiVersions:CurrentVersion", "1.0" },
-                { "Api:ApiVersions:DeprecatedVersions", "" }
+                { "HackerNews:MaxStoriesAllowed", "30" },
+                { "HackerNews:MaxParallelRequests", "10" },
+                { "HackerNews:RequestTimeoutSeconds", "2" },
+                { "HackerNews:MaxRetryAttempts", "3" },
+                { "HackerNews:RetryDelayMilliseconds", "200" },
+                { "HackerNews:CircuitBreakerFailureRatio", "0.5" },
+                { "HackerNews:CircuitBreakerSamplingDurationSeconds", "30" },
+                { "HackerNews:CircuitBreakerMinimumThroughput", "5" },
             })
             .Build();
 

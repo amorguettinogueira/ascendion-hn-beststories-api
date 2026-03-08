@@ -11,7 +11,8 @@ namespace Ascendion.HNBestStories.Api.Services;
 public sealed class HackerNewsClient(
     HttpClient httpClient,
     IMemoryCache cache,
-    HackerNewsSettings settings) : IHackerNewsClient
+    HackerNewsSettings settings,
+    ILogger<HackerNewsClient> logger) : IHackerNewsClient
 {
     private readonly HttpClient _httpClient = httpClient
         ?? throw new ArgumentNullException(nameof(httpClient));
@@ -21,6 +22,9 @@ public sealed class HackerNewsClient(
 
     private readonly HackerNewsSettings _settings = settings
         ?? throw new ArgumentNullException(nameof(settings));
+
+    private readonly ILogger<HackerNewsClient> _logger = logger
+        ?? throw new ArgumentNullException(nameof(logger));
 
     private const string BestStoriesIdsCacheKey = "hacker_news_best_stories_ids";
     private const string StoryCacheKeyPrefix = "hacker_news_story_";
@@ -84,6 +88,7 @@ public sealed class HackerNewsClient(
             // Return null for not found or other non-success responses
             if (!response.IsSuccessStatusCode)
             {
+                _logger.LogError("Failed to retrieve story with ID {StoryId}. Status code: {StatusCode}", storyId, response.StatusCode);
                 return null;
             }
 
@@ -99,13 +104,15 @@ public sealed class HackerNewsClient(
 
             return story;
         }
-        catch (HttpRequestException)
+        catch (HttpRequestException ex)
         {
+            _logger.LogError(ex, "Network error while retrieving story with ID {StoryId}", storyId);
             // Network errors result in null to allow graceful degradation
             return null;
         }
-        catch (JsonException)
+        catch (JsonException ex)
         {
+            _logger.LogError(ex, "JSON parsing error while retrieving story with ID {StoryId}", storyId);
             // JSON parsing errors result in null
             return null;
         }
